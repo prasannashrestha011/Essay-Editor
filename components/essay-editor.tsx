@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
-import { useEssays } from "@/hooks/use-essays"
-import { useDraft } from "@/hooks/use-draft"
+import { useEssaysStore } from "@/stores/essays-store"
+import { useDraftStore } from "@/stores/draft-store"
+import { useAuth } from "@/contexts/auth-context"
 
 const ReactQuill = dynamic(
   async () => {
@@ -30,14 +31,14 @@ export default function EssayEditor() {
   const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
 
-  const { addEssay } = useEssays()
-  const { draft, saveDraft, clearDraft, hasDraft } = useDraft()
+  const { user } = useAuth()
+  const { addEssayHandler } = useEssaysStore()
+  const { draft, saveDraft, clearDraft, hasDraft } = useDraftStore()
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  // Load draft on component mount
   useEffect(() => {
     if (draft) {
       setTitle(draft.title)
@@ -45,18 +46,16 @@ export default function EssayEditor() {
     }
   }, [draft])
 
-  // Auto-save draft every 30 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      if (title.trim() || content.trim()) {
-        saveDraft(title, content)
+      if ((title.trim() || content.trim()) && user) {
+        saveDraft(title, content, user.uid)
       }
     }, 30000) // 30 seconds
 
     return () => clearInterval(interval)
-  }, [title, content, saveDraft])
+  }, [title, content, saveDraft, user])
 
-  // Quill modules configuration
   const modules = {
     toolbar: [
       [{ header: [1, 2, 3, false] }],
@@ -76,23 +75,28 @@ export default function EssayEditor() {
       return
     }
 
+    if (!user) {
+      alert("You must be logged in to publish an essay.")
+      return
+    }
+
     setIsPublishing(true)
 
     try {
-      // Add essay using the hook
-      const newEssay = await addEssay({
-        title: title.trim(),
-        content: content,
-      })
+      const newEssay = await addEssayHandler(
+        {
+          title: title.trim(),
+          content: content,
+        },
+        user.uid,
+      )
 
       if (newEssay) {
-        // Clear form and draft
         setTitle("")
         setContent("")
-        await clearDraft()
+        await clearDraft(user.uid)
         setIsPublishing(false)
 
-        // Show success message and redirect
         alert("Essay published successfully!")
         router.push(`/essays/${newEssay.id}`)
       } else {
@@ -111,7 +115,12 @@ export default function EssayEditor() {
       return
     }
 
-    const success = await saveDraft(title, content)
+    if (!user) {
+      alert("You must be logged in to save a draft.")
+      return
+    }
+
+    const success = await saveDraft(title, content, user.uid)
     if (success) {
       alert("Draft saved!")
     } else {
@@ -123,7 +132,9 @@ export default function EssayEditor() {
     if (confirm("Are you sure you want to clear the current draft?")) {
       setTitle("")
       setContent("")
-      await clearDraft()
+      if (user) {
+        await clearDraft(user.uid)
+      }
     }
   }
 

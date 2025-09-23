@@ -1,14 +1,27 @@
 "use client"
 
 import Link from "next/link"
-import { useEssays } from "@/hooks/use-essays"
+import { useEssaysStore } from "@/stores/essays-store"
+import { useAuth } from "@/contexts/auth-context"
+import { useEffect } from "react"
 
 export default function EssayList() {
-  const { essays, isLoading, deleteEssay } = useEssays()
+  const { user } = useAuth()
+  const { essays, isLoading, deleteEssayHandler, loadEssays, clearEssays } = useEssaysStore()
 
-  const handleDeleteEssay = (essayId: string) => {
+  useEffect(() => {
+    if (user) {
+      loadEssays(user.uid)
+    } else {
+      clearEssays()
+    }
+  }, [user, loadEssays, clearEssays])
+
+  const handleDeleteEssay = async (essayId: string) => {
+    if (!user) return
+
     if (confirm("Are you sure you want to delete this essay?")) {
-      deleteEssay(essayId)
+      await deleteEssayHandler(essayId, user.uid)
     }
   }
 

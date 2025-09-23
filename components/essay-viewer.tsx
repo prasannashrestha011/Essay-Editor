@@ -2,17 +2,26 @@
 
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { useEssays } from "@/hooks/use-essays"
+import { useEssaysStore } from "@/stores/essays-store"
+import { useAuth } from "@/contexts/auth-context"
+import { useEffect } from "react"
 
 interface EssayViewerProps {
   essayId: string
 }
 
 export default function EssayViewer({ essayId }: EssayViewerProps) {
-  const { getEssay, deleteEssay, isLoading } = useEssays()
+  const { user } = useAuth()
+  const { getEssayHandler, deleteEssayHandler, isLoading, loadEssays } = useEssaysStore()
   const router = useRouter()
 
-  const essay = getEssay(essayId)
+  useEffect(() => {
+    if (user) {
+      loadEssays(user.uid)
+    }
+  }, [user, loadEssays])
+
+  const essay = getEssayHandler(essayId)
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -24,10 +33,14 @@ export default function EssayViewer({ essayId }: EssayViewerProps) {
     })
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
+    if (!user) return
+
     if (confirm("Are you sure you want to delete this essay?")) {
-      deleteEssay(essayId)
-      router.push("/essays")
+      const success = await deleteEssayHandler(essayId, user.uid)
+      if (success) {
+        router.push("/essays")
+      }
     }
   }
 

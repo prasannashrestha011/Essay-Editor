@@ -1,8 +1,10 @@
 import Link from "next/link"
+import Navigation from "@/components/navigation"
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Navigation />
       <div className="container mx-auto px-4 py-16">
         <div className="text-center">
           <h1 className="text-5xl font-bold text-gray-900 mb-6">Essay Writer</h1>
