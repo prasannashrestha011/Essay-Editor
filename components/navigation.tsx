@@ -39,6 +39,15 @@ export default function Navigation() {
           </Link>
 
           <div className="flex items-center space-x-6">
+            <Link
+              href="/essays"
+              className={`font-medium transition-colors ${
+                isActive("/essays") && !isActive("/dashboard") ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
+              }`}
+            >
+              Public Essays
+            </Link>
+
             {user && (
               <>
                 <Link
@@ -51,12 +60,12 @@ export default function Navigation() {
                   {hasDraft() && <span className="w-2 h-2 bg-green-500 rounded-full"></span>}
                 </Link>
                 <Link
-                  href="/essays"
+                  href="/dashboard"
                   className={`font-medium transition-colors flex items-center gap-1 ${
-                    isActive("/essays") ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
+                    isActive("/dashboard") ? "text-blue-600" : "text-gray-600 hover:text-blue-600"
                   }`}
                 >
-                  Essays
+                  Dashboard
                   {essays.length > 0 && (
                     <span className="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full">{essays.length}</span>
                   )}

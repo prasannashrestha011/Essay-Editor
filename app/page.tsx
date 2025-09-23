@@ -24,7 +24,7 @@ export default function HomePage() {
               href="/essays"
               className="bg-white hover:bg-gray-50 text-blue-600 font-semibold py-3 px-8 rounded-lg border-2 border-blue-600 transition-colors duration-200"
             >
-              View Essays
+              Browse Public Essays
             </Link>
           </div>
         </div>

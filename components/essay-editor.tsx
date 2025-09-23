@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from "react"
 import dynamic from "next/dynamic"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useEssaysStore } from "@/stores/essays-store"
 import { useDraftStore } from "@/stores/draft-store"
 import { useAuth } from "@/contexts/auth-context"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
+import { Globe, Lock } from "lucide-react"
 
 const ReactQuill = dynamic(
   async () => {
@@ -27,12 +30,16 @@ const ReactQuill = dynamic(
 export default function EssayEditor() {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
+  const [isPublic, setIsPublic] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const { user } = useAuth()
-  const { addEssayHandler } = useEssaysStore()
+  const { addEssayHandler, updateEssayHandler, getEssayHandler } = useEssaysStore()
   const { draft, saveDraft, clearDraft, hasDraft } = useDraftStore()
 
   useEffect(() => {
@@ -40,21 +47,35 @@ export default function EssayEditor() {
   }, [])
 
   useEffect(() => {
-    if (draft) {
+    const editId = searchParams.get("edit")
+    if (editId && user) {
+      const existingEssay = getEssayHandler(editId)
+      if (existingEssay && existingEssay.userId === user.uid) {
+        setTitle(existingEssay.title)
+        setContent(existingEssay.content)
+        setIsPublic(existingEssay.isPublic)
+        setEditingId(editId)
+        setIsEditing(true)
+      }
+    }
+  }, [searchParams, user, getEssayHandler])
+
+  useEffect(() => {
+    if (draft && !isEditing) {
       setTitle(draft.title)
       setContent(draft.content)
     }
-  }, [draft])
+  }, [draft, isEditing])
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if ((title.trim() || content.trim()) && user) {
+      if ((title.trim() || content.trim()) && user && !isEditing) {
         saveDraft(title, content, user.uid)
       }
     }, 30000) // 30 seconds
 
     return () => clearInterval(interval)
-  }, [title, content, saveDraft, user])
+  }, [title, content, saveDraft, user, isEditing])
 
   const modules = {
     toolbar: [
@@ -83,25 +104,45 @@ export default function EssayEditor() {
     setIsPublishing(true)
 
     try {
-      const newEssay = await addEssayHandler(
-        {
-          title: title.trim(),
-          content: content,
-        },
-        user.uid,
-      )
-
-      if (newEssay) {
-        setTitle("")
-        setContent("")
-        await clearDraft(user.uid)
-        setIsPublishing(false)
-
-        alert("Essay published successfully!")
-        router.push(`/essays/${newEssay.id}`)
+      let result
+      if (isEditing && editingId) {
+        result = await updateEssayHandler(
+          editingId,
+          {
+            title: title.trim(),
+            content: content,
+            isPublic: isPublic,
+          },
+          user.uid,
+        )
+        if (result) {
+          alert("Essay updated successfully!")
+          router.push(`/essays/${editingId}`)
+        } else {
+          throw new Error("Failed to update essay")
+        }
       } else {
-        throw new Error("Failed to publish essay")
+        const newEssay = await addEssayHandler(
+          {
+            title: title.trim(),
+            content: content,
+            isPublic: isPublic,
+          },
+          user.uid,
+        )
+
+        if (newEssay) {
+          setTitle("")
+          setContent("")
+          setIsPublic(false)
+          await clearDraft(user.uid)
+          alert("Essay published successfully!")
+          router.push(`/essays/${newEssay.id}`)
+        } else {
+          throw new Error("Failed to publish essay")
+        }
       }
+      setIsPublishing(false)
     } catch (error) {
       console.error("Error publishing essay:", error)
       alert("Error publishing essay. Please try again.")
@@ -120,6 +161,11 @@ export default function EssayEditor() {
       return
     }
 
+    if (isEditing) {
+      alert("Changes to existing essays are saved automatically when you update.")
+      return
+    }
+
     const success = await saveDraft(title, content, user.uid)
     if (success) {
       alert("Draft saved!")
@@ -132,7 +178,8 @@ export default function EssayEditor() {
     if (confirm("Are you sure you want to clear the current draft?")) {
       setTitle("")
       setContent("")
-      if (user) {
+      setIsPublic(false)
+      if (user && !isEditing) {
         await clearDraft(user.uid)
       }
     }
@@ -160,8 +207,10 @@ export default function EssayEditor() {
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Write Your Essay</h1>
-            {hasDraft() && <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">Draft saved</div>}
+            <h1 className="text-2xl font-bold text-gray-900">{isEditing ? "Edit Essay" : "Write Your Essay"}</h1>
+            {hasDraft() && !isEditing && (
+              <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">Draft saved</div>
+            )}
           </div>
 
           {/* Title Input */}
@@ -170,8 +219,19 @@ export default function EssayEditor() {
             placeholder="Enter your essay title..."
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full text-xl font-semibold p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+            className="w-full text-xl font-semibold p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4"
           />
+
+          <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center space-x-2">
+              {isPublic ? <Globe className="h-4 w-4 text-green-600" /> : <Lock className="h-4 w-4 text-gray-600" />}
+              <Label htmlFor="privacy-toggle" className="text-sm font-medium">
+                {isPublic ? "Public Essay" : "Private Essay"}
+              </Label>
+            </div>
+            <Switch id="privacy-toggle" checked={isPublic} onCheckedChange={setIsPublic} />
+            <span className="text-xs text-gray-600">{isPublic ? "Visible to everyone" : "Only visible to you"}</span>
+          </div>
         </div>
 
         {/* Rich Text Editor */}
@@ -190,20 +250,20 @@ export default function EssayEditor() {
         {/* Action Buttons */}
         <div className="p-6 border-t bg-gray-50 flex flex-wrap gap-3 justify-between">
           <div className="flex gap-3">
-            <button
-              onClick={handleSaveDraft}
-              className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Save Draft
-            </button>
-            {hasDraft() && (
+            {!isEditing && (
               <button
-                onClick={handleClearDraft}
-                className="px-4 py-2 text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+                onClick={handleSaveDraft}
+                className="px-4 py-2 text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                Clear Draft
+                Save Draft
               </button>
             )}
+            <button
+              onClick={handleClearDraft}
+              className="px-4 py-2 text-red-600 bg-white border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
+            >
+              {isEditing ? "Reset Changes" : "Clear Draft"}
+            </button>
           </div>
 
           <button
@@ -211,7 +271,13 @@ export default function EssayEditor() {
             disabled={isPublishing}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
-            {isPublishing ? "Publishing..." : "Publish Essay"}
+            {isPublishing
+              ? isEditing
+                ? "Updating..."
+                : "Publishing..."
+              : isEditing
+                ? "Update Essay"
+                : "Publish Essay"}
           </button>
         </div>
       </div>
@@ -223,7 +289,8 @@ export default function EssayEditor() {
           <li>• Use headings to structure your essay</li>
           <li>• Bold important points for emphasis</li>
           <li>• Create lists to organize your thoughts</li>
-          <li>• Drafts are auto-saved every 30 seconds</li>
+          <li>• Toggle privacy to control who can see your essay</li>
+          {!isEditing && <li>• Drafts are auto-saved every 30 seconds</li>}
         </ul>
       </div>
     </div>

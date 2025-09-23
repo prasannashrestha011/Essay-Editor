@@ -20,6 +20,7 @@ export interface Essay {
   createdAt: string
   updatedAt: string
   userId: string
+  isPublic: boolean
 }
 
 export interface Draft {
@@ -91,6 +92,7 @@ export async function getEssays(userId: string): Promise<Essay[]> {
         title: data.title,
         content: data.content,
         userId: data.userId,
+        isPublic: data.isPublic || false,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
       }
@@ -121,6 +123,7 @@ export async function getEssay(id: string, userId: string): Promise<Essay | null
         title: data.title,
         content: data.content,
         userId: data.userId,
+        isPublic: data.isPublic || false,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
       }
@@ -130,6 +133,63 @@ export async function getEssay(id: string, userId: string): Promise<Essay | null
     console.error("Error fetching essay from Firebase:", error)
     const essays = getLocalStorageEssays(userId)
     return essays.find((essay) => essay.id === id) || null
+  }
+}
+
+export async function getPublicEssays(): Promise<Essay[]> {
+  if (!isFirebaseConfigured || !db) {
+    console.warn("Firebase not configured, cannot fetch public essays")
+    return []
+  }
+
+  try {
+    const q = query(collection(db, ESSAYS_COLLECTION), where("isPublic", "==", true), orderBy("createdAt", "desc"))
+    const querySnapshot = await getDocs(q)
+
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        title: data.title,
+        content: data.content,
+        userId: data.userId,
+        isPublic: data.isPublic,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+      }
+    })
+  } catch (error) {
+    console.error("Error fetching public essays from Firebase:", error)
+    return []
+  }
+}
+
+export async function getAnyEssay(id: string): Promise<Essay | null> {
+  if (!isFirebaseConfigured || !db) {
+    console.warn("Firebase not configured, cannot fetch essay")
+    return null
+  }
+
+  try {
+    const docRef = doc(db, ESSAYS_COLLECTION, id)
+    const docSnap = await getDoc(docRef)
+
+    if (docSnap.exists()) {
+      const data = docSnap.data()
+      return {
+        id: docSnap.id,
+        title: data.title,
+        content: data.content,
+        userId: data.userId,
+        isPublic: data.isPublic || false,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+        updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+      }
+    }
+    return null
+  } catch (error) {
+    console.error("Error fetching essay from Firebase:", error)
+    return null
   }
 }
 
@@ -143,6 +203,7 @@ export async function addEssay(
     title: essay.title,
     content: essay.content,
     userId,
+    isPublic: essay.isPublic || false,
     createdAt: now,
     updatedAt: now,
   }
@@ -160,6 +221,7 @@ export async function addEssay(
       title: essay.title,
       content: essay.content,
       userId,
+      isPublic: essay.isPublic || false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     })
@@ -169,6 +231,7 @@ export async function addEssay(
       title: essay.title,
       content: essay.content,
       userId,
+      isPublic: essay.isPublic || false,
       createdAt: now,
       updatedAt: now,
     }
