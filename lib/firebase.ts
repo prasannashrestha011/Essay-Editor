@@ -1,6 +1,6 @@
-import { initializeApp } from "firebase/app"
-import { getFirestore } from "firebase/firestore"
-import { getAuth, GoogleAuthProvider } from "firebase/auth"
+import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app"
+import { getFirestore, type Firestore } from "firebase/firestore"
+import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth"
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,25 +11,70 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Check if Firebase config is available
-const isFirebaseConfigured = Object.values(firebaseConfig).every((value) => value !== undefined)
+// Check if Firebase config is available and valid
+const isFirebaseConfigured = Object.values(firebaseConfig).every(
+  (value) => value !== undefined && value !== "" && value !== null,
+)
 
-let app: any = null
-let db: any = null
-let auth: any = null
-let googleProvider: any = null
+let app: FirebaseApp | null = null
+let db: Firestore | null = null
+let auth: Auth | null = null
+let googleProvider: GoogleAuthProvider | null = null
 
+// Initialize Firebase only if properly configured
 if (isFirebaseConfigured) {
   try {
-    // Initialize Firebase
-    app = initializeApp(firebaseConfig)
-    // Initialize Firestore
-    db = getFirestore(app)
-    auth = getAuth(app)
-    googleProvider = new GoogleAuthProvider()
+    if (getApps().length === 0) {
+      app = initializeApp(firebaseConfig)
+      console.log("[v0] Firebase app initialized successfully")
+    } else {
+      app = getApp()
+      console.log("[v0] Using existing Firebase app instance")
+    }
+
+    // Only proceed if app initialization was successful
+    if (app) {
+      try {
+        auth = getAuth(app)
+        googleProvider = new GoogleAuthProvider()
+        console.log("[v0] Firebase Auth initialized successfully")
+      } catch (authError) {
+        console.error("[v0] Firebase Auth initialization failed:", authError)
+        console.warn("[v0] Authentication features will not be available")
+        auth = null
+        googleProvider = null
+      }
+
+      try {
+        db = getFirestore(app)
+        console.log("[v0] Firestore initialized successfully")
+      } catch (firestoreError) {
+        console.error("[v0] Firestore initialization failed:", firestoreError)
+        console.warn("[v0] Please ensure Firestore is enabled in your Firebase Console")
+        console.warn("[v0] Data will be stored locally until Firestore is available")
+        db = null
+      }
+    }
   } catch (error) {
-    console.error("Firebase initialization error:", error)
+    console.error("[v0] Critical Firebase initialization error:", error)
+    console.warn("[v0] All Firebase features will be unavailable")
+    app = null
+    db = null
+    auth = null
+    googleProvider = null
   }
+} else {
+  console.warn("[v0] Firebase configuration incomplete - some environment variables are missing:")
+  const missingVars = Object.entries(firebaseConfig)
+    .filter(([_, value]) => !value)
+    .map(([key]) => key)
+  console.warn("[v0] Missing variables:", missingVars)
+  console.warn("[v0] Please set these environment variables in your Vercel project settings")
 }
 
+// Export availability flags
+export const isFirestoreAvailable = !!db
+export const isAuthAvailable = !!auth
+
+// Export Firebase instances
 export { db, auth, googleProvider, isFirebaseConfigured }
