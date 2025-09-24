@@ -1,5 +1,5 @@
 import { signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged, type User } from "firebase/auth"
-import { auth, googleProvider, isFirebaseConfigured } from "./firebase"
+import { auth, googleProvider, isFirebaseConfigured, isAuthAvailable } from "./firebase"
 
 export interface AuthUser {
   uid: string
@@ -9,8 +9,9 @@ export interface AuthUser {
 }
 
 export const signInWithGoogle = async (): Promise<AuthUser | null> => {
-  if (!isFirebaseConfigured || !auth || !googleProvider) {
-    throw new Error("Firebase is not configured")
+  if (!isFirebaseConfigured || !isAuthAvailable || !auth || !googleProvider) {
+    console.error("[v0] Firebase Auth is not available for Google sign-in")
+    throw new Error("Firebase Auth is not configured or available")
   }
 
   try {
@@ -23,40 +24,48 @@ export const signInWithGoogle = async (): Promise<AuthUser | null> => {
       photoURL: user.photoURL,
     }
   } catch (error) {
-    console.error("Google sign-in error:", error)
+    console.error("[v0] Google sign-in error:", error)
     throw error
   }
 }
 
 export const signOut = async (): Promise<void> => {
-  if (!isFirebaseConfigured || !auth) {
-    throw new Error("Firebase is not configured")
+  if (!isFirebaseConfigured || !isAuthAvailable || !auth) {
+    console.error("[v0] Firebase Auth is not available for sign-out")
+    throw new Error("Firebase Auth is not configured or available")
   }
 
   try {
     await firebaseSignOut(auth)
   } catch (error) {
-    console.error("Sign out error:", error)
+    console.error("[v0] Sign out error:", error)
     throw error
   }
 }
 
 export const onAuthStateChange = (callback: (user: AuthUser | null) => void) => {
-  if (!isFirebaseConfigured || !auth) {
+  if (!isFirebaseConfigured || !isAuthAvailable || !auth) {
+    console.warn("[v0] Firebase Auth is not available, user will remain signed out")
     callback(null)
     return () => {}
   }
 
-  return onAuthStateChanged(auth, (user: User | null) => {
-    if (user) {
-      callback({
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-      })
-    } else {
-      callback(null)
-    }
-  })
+  try {
+    return onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        callback({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        })
+      } else {
+        callback(null)
+      }
+    })
+  } catch (error) {
+    console.error("[v0] Error setting up auth state listener:", error)
+    callback(null)
+    return () => {}
+  }
 }
