@@ -78,9 +78,12 @@ export default function PublicEssayList() {
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {essays.map((essay) => (
-          <Card key={essay.id} className="hover:shadow-md transition-shadow">
-            <CardHeader>
-              <CardTitle className="text-lg mb-2 line-clamp-2">
+          <Card
+            key={essay.id}
+            className="hover:shadow-md transition-shadow h-72 border border-gray-400 rounded-xl flex flex-col"
+          >
+            <CardHeader className="flex-shrink-0 pb-3">
+              <CardTitle className="text-lg mb-2 line-clamp-2 min-h-[3.5rem]">
                 {essay.title}
               </CardTitle>
               <div className="flex items-center justify-between text-sm text-gray-600">
@@ -97,25 +100,29 @@ export default function PublicEssayList() {
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent>
-              <div
-                className="text-gray-700 mb-4 line-clamp-4 text-sm"
-                dangerouslySetInnerHTML={{
-                  __html:
-                    essay.content.replace(/<[^>]*>/g, "").substring(0, 150) +
-                    "...",
-                }}
-              />
-              <Link href={`/essays/${essay.id}`}>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-full bg-transparent"
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Read Essay
-                </Button>
-              </Link>
+            <CardContent className="flex flex-col flex-grow pt-0">
+              <div className="flex-grow mb-4">
+                <div
+                  className="text-gray-700 text-sm line-clamp-4"
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      essay.content.replace(/<[^>]*>/g, "").substring(0, 150) +
+                      "...",
+                  }}
+                />
+              </div>
+              <div className="mt-auto">
+                <Link href={`/essays/${essay.id}`}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full bg-transparent border-gray-500"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Read Essay
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
         ))}
