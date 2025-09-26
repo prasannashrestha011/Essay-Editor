@@ -9,11 +9,20 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, User } from "lucide-react";
 
 export default function PublicEssayList() {
-  const { essays, isLoading, loadPublicEssays } = usePublicEssaysStore();
+  const {
+    essays,
+    isLoading,
+    subscribePublicEssayList,
+    unsubscribePublicEssayList,
+  } = usePublicEssaysStore();
 
   useEffect(() => {
-    loadPublicEssays();
-  }, [loadPublicEssays]);
+    subscribePublicEssayList();
+
+    return () => {
+      unsubscribePublicEssayList();
+    };
+  }, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {

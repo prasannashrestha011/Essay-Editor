@@ -1,21 +1,22 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import dynamic from "next/dynamic"
-import { useRouter, useSearchParams } from "next/navigation"
-import { useEssaysStore } from "@/stores/essays-store"
-import { useDraftStore } from "@/stores/draft-store"
-import { useAuth } from "@/contexts/auth-context"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { Globe, Lock } from "lucide-react"
-
+"use client";
+import "react-quill/dist/quill.snow.css";
+import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEssaysStore } from "@/stores/essays-store";
+import { useDraftStore } from "@/stores/draft-store";
+import { useAuth } from "@/contexts/auth-context";
+import * as Switch from "@radix-ui/react-switch";
+import { Label } from "@/components/ui/label";
+import { Globe, Lock } from "lucide-react";
+import { useEssayDraftStore } from "@/stores/content-store";
+import { toast } from "react-toastify";
 const ReactQuill = dynamic(
   async () => {
-    const { default: RQ } = await import("react-quill")
+    const { default: RQ } = await import("react-quill");
     // Import styles
-    await import("react-quill/dist/quill.snow.css")
-    return RQ
+    await import("react-quill/dist/quill.snow.css");
+    return RQ;
   },
   {
     ssr: false,
@@ -25,86 +26,109 @@ const ReactQuill = dynamic(
       </div>
     ),
   },
-)
-
+);
 export default function EssayEditor() {
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
-  const [isPublic, setIsPublic] = useState(false)
-  const [isPublishing, setIsPublishing] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const { title, content, isPublic, setTitle, setContent, setIsPublic } =
+    useEssayDraftStore();
 
-  const { user } = useAuth()
-  const { addEssayHandler, updateEssayHandler, getEssayHandler } = useEssaysStore()
-  const { draft, saveDraft, clearDraft, hasDraft } = useDraftStore()
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  const { user } = useAuth();
+  const { addEssayHandler, updateEssayHandler, getEssayHandler } =
+    useEssaysStore();
+  const { draft, saveDraft, clearDraft, hasDraft } = useDraftStore();
 
   useEffect(() => {
-    const editId = searchParams.get("edit")
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const editId = searchParams.get("edit");
     if (editId && user) {
-      const existingEssay = getEssayHandler(editId)
+      const existingEssay = getEssayHandler(editId);
       if (existingEssay && existingEssay.userId === user.uid) {
-        setTitle(existingEssay.title)
-        setContent(existingEssay.content)
-        setIsPublic(existingEssay.isPublic)
-        setEditingId(editId)
-        setIsEditing(true)
+        setTitle(existingEssay.title);
+        setContent(existingEssay.content);
+        setIsPublic(existingEssay.isPublic);
+        setEditingId(editId);
+        setIsEditing(true);
       }
     }
-  }, [searchParams, user, getEssayHandler])
+  }, [searchParams, user, getEssayHandler]);
 
   useEffect(() => {
     if (draft && !isEditing) {
-      setTitle(draft.title)
-      setContent(draft.content)
+      setTitle(draft.title);
+      setContent(draft.content);
     }
-  }, [draft, isEditing])
+  }, [draft, isEditing]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       if ((title.trim() || content.trim()) && user && !isEditing) {
-        saveDraft(title, content, user.uid)
+        saveDraft(title, content, user.uid);
       }
-    }, 30000) // 30 seconds
+    }, 30000); // 30 seconds
 
-    return () => clearInterval(interval)
-  }, [title, content, saveDraft, user, isEditing])
+    return () => clearInterval(interval);
+  }, [title, content, saveDraft, user, isEditing]);
 
   const modules = {
     toolbar: [
-      [{ header: [1, 2, 3, false] }],
-      ["bold", "italic", "underline", "strike"],
-      [{ list: "ordered" }, { list: "bullet" }],
-      [{ indent: "-1" }, { indent: "+1" }],
-      ["link"],
-      ["clean"],
+      [{ header: [1, 2, 3, 4, 5, 6, false] }], // headers
+      ["bold", "italic", "underline", "strike"], // basic formatting
+      [{ color: [] }, { background: [] }], // text color & background
+      [{ font: [] }], // font selection
+      [{ size: ["small", false, "large", "huge"] }], // font sizes
+      [{ list: "ordered" }, { list: "bullet" }], // lists
+      [{ indent: "-1" }, { indent: "+1" }], // indentation
+      ["blockquote", "code-block"], // block formats
+      ["image", "video"], // media
+      ["clean"], // remove formatting
     ],
-  }
+    clipboard: {
+      matchVisual: false, // preserve pasted styles
+    },
+  };
 
-  const formats = ["header", "bold", "italic", "underline", "strike", "list", "bullet", "indent", "link"]
+  const formats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "list",
+    "bullet",
+    "indent",
+    "color",
+    "background",
+    "font",
+    "size",
+    "blockquote",
+    "code-block",
+    "image",
+  ];
 
   const handlePublish = async () => {
     if (!title.trim() || !content.trim()) {
-      alert("Please provide both a title and content for your essay.")
-      return
+      alert("Please provide both a title and content for your essay.");
+      return;
     }
 
     if (!user) {
-      alert("You must be logged in to publish an essay.")
-      return
+      alert("You must be logged in to publish an essay.");
+      return;
     }
 
-    setIsPublishing(true)
+    setIsPublishing(true);
 
     try {
-      let result
+      let result;
       if (isEditing && editingId) {
         result = await updateEssayHandler(
           editingId,
@@ -114,12 +138,12 @@ export default function EssayEditor() {
             isPublic: isPublic,
           },
           user.uid,
-        )
+        );
         if (result) {
-          alert("Essay updated successfully!")
-          router.push(`/essays/${editingId}`)
+          alert("Essay updated successfully!");
+          router.push(`/essays/${editingId}`);
         } else {
-          throw new Error("Failed to update essay")
+          throw new Error("Failed to update essay");
         }
       } else {
         const newEssay = await addEssayHandler(
@@ -129,68 +153,72 @@ export default function EssayEditor() {
             isPublic: isPublic,
           },
           user.uid,
-        )
+        );
 
         if (newEssay) {
-          setTitle("")
-          setContent("")
-          setIsPublic(false)
-          await clearDraft(user.uid)
-          alert("Essay published successfully!")
-          router.push(`/essays/${newEssay.id}`)
+          setTitle("");
+          setContent("");
+          setIsPublic(false);
+          await clearDraft(user.uid);
+          toast.success("Essay published successfully!");
+          router.push(`/essays/${newEssay.id}`);
         } else {
-          throw new Error("Failed to publish essay")
+          throw new Error("Failed to publish essay");
         }
       }
-      setIsPublishing(false)
+      setIsPublishing(false);
     } catch (error) {
-      console.error("Error publishing essay:", error)
-      alert("Error publishing essay. Please try again.")
-      setIsPublishing(false)
+      console.error("Error publishing essay:", error);
+      alert("Error publishing essay. Please try again.");
+      setIsPublishing(false);
     }
-  }
+  };
 
   const handleSaveDraft = async () => {
     if (!title.trim() && !content.trim()) {
-      alert("Nothing to save.")
-      return
+      alert("Nothing to save.");
+      return;
     }
 
     if (!user) {
-      alert("You must be logged in to save a draft.")
-      return
+      alert("You must be logged in to save a draft.");
+      return;
     }
 
     if (isEditing) {
-      alert("Changes to existing essays are saved automatically when you update.")
-      return
+      alert(
+        "Changes to existing essays are saved automatically when you update.",
+      );
+      return;
     }
 
-    const success = await saveDraft(title, content, user.uid)
+    const success = await saveDraft(title, content, user.uid);
     if (success) {
-      alert("Draft saved!")
+      alert("Draft saved!");
     } else {
-      alert("Error saving draft. Please try again.")
+      alert("Error saving draft. Please try again.");
     }
-  }
+  };
 
   const handleClearDraft = async () => {
     if (confirm("Are you sure you want to clear the current draft?")) {
-      setTitle("")
-      setContent("")
-      setIsPublic(false)
+      setTitle("");
+      setContent("");
+      setIsPublic(false);
       if (user && !isEditing) {
-        await clearDraft(user.uid)
+        await clearDraft(user.uid);
       }
     }
-  }
+  };
 
   if (!isMounted) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="bg-white rounded-lg shadow-sm border">
           <div className="p-6 border-b">
-            <h1 className="text-2xl font-bold text-gray-900">Write Your Essay</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Write Your Essay
+            </h1>
           </div>
           <div className="p-6">
             <div className="border border-gray-300 rounded-lg p-4 h-64 flex items-center justify-center bg-gray-50">
@@ -199,7 +227,7 @@ export default function EssayEditor() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -207,9 +235,13 @@ export default function EssayEditor() {
       <div className="bg-white rounded-lg shadow-sm border">
         <div className="p-6 border-b">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">{isEditing ? "Edit Essay" : "Write Your Essay"}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isEditing ? "Edit Essay" : "Write Your Essay"}
+            </h1>
             {hasDraft() && !isEditing && (
-              <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">Draft saved</div>
+              <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded-full">
+                Draft saved
+              </div>
             )}
           </div>
 
@@ -224,13 +256,26 @@ export default function EssayEditor() {
 
           <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
             <div className="flex items-center space-x-2">
-              {isPublic ? <Globe className="h-4 w-4 text-green-600" /> : <Lock className="h-4 w-4 text-gray-600" />}
+              {isPublic ? (
+                <Globe className="h-4 w-4 text-green-600" />
+              ) : (
+                <Lock className="h-4 w-4 text-gray-600" />
+              )}
               <Label htmlFor="privacy-toggle" className="text-sm font-medium">
                 {isPublic ? "Public Essay" : "Private Essay"}
               </Label>
             </div>
-            <Switch id="privacy-toggle" checked={isPublic} onCheckedChange={setIsPublic} />
-            <span className="text-xs text-gray-600">{isPublic ? "Visible to everyone" : "Only visible to you"}</span>
+            <Switch.Root
+              id="privacy-toggle"
+              checked={isPublic}
+              onCheckedChange={setIsPublic}
+              className="w-10 h-6 bg-gray-500 rounded-full relative transition-colors data-[state=checked]:bg-blue-500 p-1 m-0"
+            >
+              <Switch.Thumb className="block w-4 h-4 bg-white rounded-full shadow transform transition-transform data-[state=checked]:translate-x-4" />
+            </Switch.Root>
+            <span className="text-xs text-gray-600">
+              {isPublic ? "Visible to everyone" : "Only visible to you"}
+            </span>
           </div>
         </div>
 
@@ -294,5 +339,5 @@ export default function EssayEditor() {
         </ul>
       </div>
     </div>
-  )
+  );
 }

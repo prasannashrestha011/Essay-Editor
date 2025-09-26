@@ -10,83 +10,88 @@ import {
   query,
   serverTimestamp,
   where,
-} from "firebase/firestore"
-import { db, isFirebaseConfigured, isFirestoreAvailable } from "./firebase"
+  onSnapshot,
+} from "firebase/firestore";
+import { db, isFirebaseConfigured, isFirestoreAvailable } from "./firebase";
 
 export interface Essay {
-  id: string
-  title: string
-  content: string
-  createdAt: string
-  updatedAt: string
-  userId: string
-  isPublic: boolean
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  isPublic: boolean;
 }
 
 export interface Draft {
-  title: string
-  content: string
-  savedAt: string
-  userId: string
+  title: string;
+  content: string;
+  savedAt: string;
+  userId: string;
 }
 
-const ESSAYS_COLLECTION = "essays"
-const DRAFTS_COLLECTION = "drafts"
+const ESSAYS_COLLECTION = "essays";
+const DRAFTS_COLLECTION = "drafts";
 
 const getLocalStorageEssays = (userId: string): Essay[] => {
-  if (typeof window === "undefined") return []
+  if (typeof window === "undefined") return [];
   try {
-    const stored = localStorage.getItem(`essays_${userId}`)
-    return stored ? JSON.parse(stored) : []
+    const stored = localStorage.getItem(`essays_${userId}`);
+    return stored ? JSON.parse(stored) : [];
   } catch {
-    return []
+    return [];
   }
-}
+};
 
 const setLocalStorageEssays = (essays: Essay[], userId: string) => {
-  if (typeof window === "undefined") return
+  if (typeof window === "undefined") return;
   try {
-    localStorage.setItem(`essays_${userId}`, JSON.stringify(essays))
+    localStorage.setItem(`essays_${userId}`, JSON.stringify(essays));
   } catch (error) {
-    console.error("Error saving to localStorage:", error)
+    console.error("Error saving to localStorage:", error);
   }
-}
+};
 
 const getLocalStorageDraft = (userId: string): Draft | null => {
-  if (typeof window === "undefined") return null
+  if (typeof window === "undefined") return null;
   try {
-    const stored = localStorage.getItem(`essayDraft_${userId}`)
-    return stored ? JSON.parse(stored) : null
+    const stored = localStorage.getItem(`essayDraft_${userId}`);
+    return stored ? JSON.parse(stored) : null;
   } catch {
-    return null
+    return null;
   }
-}
+};
 
 const setLocalStorageDraft = (draft: Draft | null, userId: string) => {
-  if (typeof window === "undefined") return
+  if (typeof window === "undefined") return;
   try {
     if (draft) {
-      localStorage.setItem(`essayDraft_${userId}`, JSON.stringify(draft))
+      localStorage.setItem(`essayDraft_${userId}`, JSON.stringify(draft));
     } else {
-      localStorage.removeItem(`essayDraft_${userId}`)
+      localStorage.removeItem(`essayDraft_${userId}`);
     }
   } catch (error) {
-    console.error("Error saving draft to localStorage:", error)
+    console.error("Error saving draft to localStorage:", error);
   }
-}
+};
 
 export async function getEssays(userId: string): Promise<Essay[]> {
   if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
-    console.warn("[v0] Firestore not available, using localStorage fallback")
-    return getLocalStorageEssays(userId)
+    console.warn("[v0] Firestore not available, using localStorage fallback");
+    return getLocalStorageEssays(userId);
   }
 
   try {
-    const q = query(collection(db, ESSAYS_COLLECTION), where("userId", "==", userId), orderBy("createdAt", "desc"))
-    const querySnapshot = await getDocs(q)
+    const q = query(
+      collection(db, ESSAYS_COLLECTION),
+      where("userId", "==", userId),
+      orderBy("createdAt", "desc"),
+    );
+    const querySnapshot = await getDocs(q);
 
     return querySnapshot.docs.map((doc) => {
-      const data = doc.data()
+      const data = doc.data();
       return {
         id: doc.id,
         title: data.title,
@@ -95,28 +100,34 @@ export async function getEssays(userId: string): Promise<Essay[]> {
         isPublic: data.isPublic || false,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
-      }
-    })
+      };
+    });
   } catch (error) {
-    console.error("[v0] Error fetching essays from Firebase, falling back to localStorage:", error)
-    return getLocalStorageEssays(userId)
+    console.error(
+      "[v0] Error fetching essays from Firebase, falling back to localStorage:",
+      error,
+    );
+    return getLocalStorageEssays(userId);
   }
 }
 
-export async function getEssay(id: string, userId: string): Promise<Essay | null> {
+export async function getEssay(
+  id: string,
+  userId: string,
+): Promise<Essay | null> {
   if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
-    const essays = getLocalStorageEssays(userId)
-    return essays.find((essay) => essay.id === id) || null
+    const essays = getLocalStorageEssays(userId);
+    return essays.find((essay) => essay.id === id) || null;
   }
 
   try {
-    const docRef = doc(db, ESSAYS_COLLECTION, id)
-    const docSnap = await getDoc(docRef)
+    const docRef = doc(db, ESSAYS_COLLECTION, id);
+    const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      const data = docSnap.data()
+      const data = docSnap.data();
       if (data.userId !== userId) {
-        return null
+        return null;
       }
       return {
         id: docSnap.id,
@@ -126,28 +137,79 @@ export async function getEssay(id: string, userId: string): Promise<Essay | null
         isPublic: data.isPublic || false,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
-      }
+      };
     }
-    return null
+    return null;
   } catch (error) {
-    console.error("[v0] Error fetching essay from Firebase:", error)
-    const essays = getLocalStorageEssays(userId)
-    return essays.find((essay) => essay.id === id) || null
+    console.error("[v0] Error fetching essay from Firebase:", error);
+    const essays = getLocalStorageEssays(userId);
+    return essays.find((essay) => essay.id === id) || null;
   }
 }
-
-export async function getPublicEssays(): Promise<Essay[]> {
+//for tracking live updates
+export function subscribePublicEssays(callback: (essays: Essay[]) => void) {
   if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
-    console.warn("[v0] Firestore not available, cannot fetch public essays")
-    return []
+    console.warn(
+      "[v0] Firestore not available, cannot subscribe to public essays",
+    );
+    return () => {};
   }
 
   try {
-    const q = query(collection(db, ESSAYS_COLLECTION), where("isPublic", "==", true), orderBy("createdAt", "desc"))
-    const querySnapshot = await getDocs(q)
+    const q = query(
+      collection(db, ESSAYS_COLLECTION),
+      where("isPublic", "==", true),
+      orderBy("createdAt", "desc"),
+    );
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const essays: Essay[] = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            title: data.title,
+            content: data.content,
+            userId: data.userId,
+            isPublic: data.isPublic,
+            createdAt:
+              data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
+            updatedAt:
+              data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
+          };
+        });
+
+        callback(essays); // pass updated essays to caller
+      },
+      (error) => {
+        console.error("[v0] Error in Firestore subscription:", error);
+      },
+    );
+
+    return unsubscribe;
+  } catch (error) {
+    console.error("[v0] Failed to subscribe to public essays:", error);
+    return () => {};
+  }
+}
+export async function getPublicEssays(): Promise<Essay[]> {
+  if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
+    console.warn("[v0] Firestore not available, cannot fetch public essays");
+    return [];
+  }
+
+  try {
+    const q = query(
+      collection(db, ESSAYS_COLLECTION),
+      where("isPublic", "==", true),
+      orderBy("createdAt", "desc"),
+    );
+    const querySnapshot = await getDocs(q);
 
     return querySnapshot.docs.map((doc) => {
-      const data = doc.data()
+      const data = doc.data();
+      console.log("Public essay data:", data);
       return {
         id: doc.id,
         title: data.title,
@@ -156,26 +218,26 @@ export async function getPublicEssays(): Promise<Essay[]> {
         isPublic: data.isPublic,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
-      }
-    })
+      };
+    });
   } catch (error) {
-    console.error("[v0] Error fetching public essays from Firebase:", error)
-    return []
+    console.error("[v0] Error fetching public essays from Firebase:", error);
+    return [];
   }
 }
 
 export async function getAnyEssay(id: string): Promise<Essay | null> {
   if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
-    console.warn("[v0] Firestore not available, cannot fetch essay")
-    return null
+    console.warn("[v0] Firestore not available, cannot fetch essay");
+    return null;
   }
 
   try {
-    const docRef = doc(db, ESSAYS_COLLECTION, id)
-    const docSnap = await getDoc(docRef)
+    const docRef = doc(db, ESSAYS_COLLECTION, id);
+    const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      const data = docSnap.data()
+      const data = docSnap.data();
       return {
         id: docSnap.id,
         title: data.title,
@@ -184,12 +246,12 @@ export async function getAnyEssay(id: string): Promise<Essay | null> {
         isPublic: data.isPublic || false,
         createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt,
         updatedAt: data.updatedAt?.toDate?.()?.toISOString() || data.updatedAt,
-      }
+      };
     }
-    return null
+    return null;
   } catch (error) {
-    console.error("[v0] Error fetching essay from Firebase:", error)
-    return null
+    console.error("[v0] Error fetching essay from Firebase:", error);
+    return null;
   }
 }
 
@@ -197,7 +259,7 @@ export async function addEssay(
   essay: Omit<Essay, "id" | "createdAt" | "updatedAt">,
   userId: string,
 ): Promise<Essay | null> {
-  const now = new Date().toISOString()
+  const now = new Date().toISOString();
   const newEssay: Essay = {
     id: Date.now().toString(),
     title: essay.title,
@@ -206,14 +268,14 @@ export async function addEssay(
     isPublic: essay.isPublic || false,
     createdAt: now,
     updatedAt: now,
-  }
+  };
 
   if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
-    console.warn("[v0] Firestore not available, using localStorage fallback")
-    const essays = getLocalStorageEssays(userId)
-    const updatedEssays = [newEssay, ...essays]
-    setLocalStorageEssays(updatedEssays, userId)
-    return newEssay
+    console.warn("[v0] Firestore not available, using localStorage fallback");
+    const essays = getLocalStorageEssays(userId);
+    const updatedEssays = [newEssay, ...essays];
+    setLocalStorageEssays(updatedEssays, userId);
+    return newEssay;
   }
 
   try {
@@ -224,7 +286,7 @@ export async function addEssay(
       isPublic: essay.isPublic || false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    })
+    });
 
     return {
       id: docRef.id,
@@ -234,13 +296,16 @@ export async function addEssay(
       isPublic: essay.isPublic || false,
       createdAt: now,
       updatedAt: now,
-    }
+    };
   } catch (error) {
-    console.error("[v0] Error adding essay to Firebase, falling back to localStorage:", error)
-    const essays = getLocalStorageEssays(userId)
-    const updatedEssays = [newEssay, ...essays]
-    setLocalStorageEssays(updatedEssays, userId)
-    return newEssay
+    console.error(
+      "[v0] Error adding essay to Firebase, falling back to localStorage:",
+      error,
+    );
+    const essays = getLocalStorageEssays(userId);
+    const updatedEssays = [newEssay, ...essays];
+    setLocalStorageEssays(updatedEssays, userId);
+    return newEssay;
   }
 }
 
@@ -250,99 +315,111 @@ export async function updateEssay(
   userId: string,
 ): Promise<boolean> {
   if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
-    const essays = getLocalStorageEssays(userId)
+    const essays = getLocalStorageEssays(userId);
     const updatedEssays = essays.map((essay) =>
       essay.id === id && essay.userId === userId
         ? { ...essay, ...updates, updatedAt: new Date().toISOString() }
         : essay,
-    )
-    setLocalStorageEssays(updatedEssays, userId)
-    return true
+    );
+    setLocalStorageEssays(updatedEssays, userId);
+    return true;
   }
 
   try {
-    const docRef = doc(db, ESSAYS_COLLECTION, id)
-    const docSnap = await getDoc(docRef)
+    const docRef = doc(db, ESSAYS_COLLECTION, id);
+    const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists() || docSnap.data()?.userId !== userId) {
-      return false
+      return false;
     }
 
     await updateDoc(docRef, {
       ...updates,
       updatedAt: serverTimestamp(),
-    })
-    return true
+    });
+    return true;
   } catch (error) {
-    console.error("[v0] Error updating essay in Firebase:", error)
-    return false
+    console.error("[v0] Error updating essay in Firebase:", error);
+    return false;
   }
 }
 
-export async function deleteEssay(id: string, userId: string): Promise<boolean> {
+export async function deleteEssay(
+  id: string,
+  userId: string,
+): Promise<boolean> {
   if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
-    const essays = getLocalStorageEssays(userId)
-    const updatedEssays = essays.filter((essay) => essay.id !== id || essay.userId !== userId)
-    setLocalStorageEssays(updatedEssays, userId)
-    return true
+    const essays = getLocalStorageEssays(userId);
+    const updatedEssays = essays.filter(
+      (essay) => essay.id !== id || essay.userId !== userId,
+    );
+    setLocalStorageEssays(updatedEssays, userId);
+    return true;
   }
 
   try {
-    const docRef = doc(db, ESSAYS_COLLECTION, id)
-    const docSnap = await getDoc(docRef)
+    const docRef = doc(db, ESSAYS_COLLECTION, id);
+    const docSnap = await getDoc(docRef);
 
     if (!docSnap.exists() || docSnap.data()?.userId !== userId) {
-      return false
+      return false;
     }
 
-    await deleteDoc(docRef)
-    return true
+    await deleteDoc(docRef);
+    return true;
   } catch (error) {
-    console.error("[v0] Error deleting essay from Firebase:", error)
-    return false
+    console.error("[v0] Error deleting essay from Firebase:", error);
+    return false;
   }
 }
 
 export async function getDraft(userId: string): Promise<Draft | null> {
   if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
-    return getLocalStorageDraft(userId)
+    return getLocalStorageDraft(userId);
   }
 
   try {
-    const docRef = doc(db, DRAFTS_COLLECTION, userId)
-    const docSnap = await getDoc(docRef)
+    const docRef = doc(db, DRAFTS_COLLECTION, userId);
+    const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
-      const data = docSnap.data()
+      const data = docSnap.data();
       return {
         title: data.title || "",
         content: data.content || "",
         userId: data.userId,
         savedAt: data.savedAt?.toDate?.()?.toISOString() || data.savedAt,
-      }
+      };
     }
-    return null
+    return null;
   } catch (error) {
-    console.error("[v0] Error fetching draft from Firebase, falling back to localStorage:", error)
-    return getLocalStorageDraft(userId)
+    console.error(
+      "[v0] Error fetching draft from Firebase, falling back to localStorage:",
+      error,
+    );
+    return getLocalStorageDraft(userId);
   }
 }
 
-export async function saveDraft(title: string, content: string, userId: string): Promise<boolean> {
+export async function saveDraft(
+  title: string,
+  content: string,
+  userId: string,
+): Promise<boolean> {
   const draft: Draft = {
     title,
     content,
     userId,
     savedAt: new Date().toISOString(),
-  }
+  };
 
   if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
-    setLocalStorageDraft(draft, userId)
-    return true
+    setLocalStorageDraft(draft, userId);
+    return true;
   }
 
   try {
-    const docRef = doc(db, DRAFTS_COLLECTION, userId)
+    const docRef = doc(db, DRAFTS_COLLECTION, userId);
     await updateDoc(docRef, {
       title,
       content,
@@ -355,29 +432,35 @@ export async function saveDraft(title: string, content: string, userId: string):
         content,
         userId,
         savedAt: serverTimestamp(),
-      })
-    })
-    return true
+      });
+    });
+    return true;
   } catch (error) {
-    console.error("[v0] Error saving draft to Firebase, falling back to localStorage:", error)
-    setLocalStorageDraft(draft, userId)
-    return true
+    console.error(
+      "[v0] Error saving draft to Firebase, falling back to localStorage:",
+      error,
+    );
+    setLocalStorageDraft(draft, userId);
+    return true;
   }
 }
 
 export async function clearDraft(userId: string): Promise<boolean> {
   if (!isFirebaseConfigured || !isFirestoreAvailable || !db) {
-    setLocalStorageDraft(null, userId)
-    return true
+    setLocalStorageDraft(null, userId);
+    return true;
   }
 
   try {
-    const docRef = doc(db, DRAFTS_COLLECTION, userId)
-    await deleteDoc(docRef)
-    return true
+    const docRef = doc(db, DRAFTS_COLLECTION, userId);
+    await deleteDoc(docRef);
+    return true;
   } catch (error) {
-    console.error("[v0] Error clearing draft from Firebase, falling back to localStorage:", error)
-    setLocalStorageDraft(null, userId)
-    return true
+    console.error(
+      "[v0] Error clearing draft from Firebase, falling back to localStorage:",
+      error,
+    );
+    setLocalStorageDraft(null, userId);
+    return true;
   }
 }

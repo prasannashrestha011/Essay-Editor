@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/auth-context";
 import { MantineProvider } from "@mantine/core";
+import { AuthListener } from "@/contexts/AuthListener";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,6 +23,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.className} antialiased`}>
       <body className="min-h-screen bg-gray-50">
         <MantineProvider>
+          <AuthListener />
           <AuthProvider>{children}</AuthProvider>
         </MantineProvider>
       </body>

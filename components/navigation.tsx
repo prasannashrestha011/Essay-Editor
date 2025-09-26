@@ -8,6 +8,10 @@ import { UserMenu } from "./user-menu";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
+//icons
+import { BookDashed } from "lucide-react";
+import { PenLine } from "lucide-react";
+import { Gauge } from "lucide-react";
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -46,6 +50,7 @@ export default function Navigation() {
             : "text-gray-600 hover:text-blue-600"
         }`}
       >
+        <BookDashed className="inline mb-1 mr-1" size={16} />
         Public Essays
       </Link>
       {user && (
@@ -61,6 +66,7 @@ export default function Navigation() {
                 : "text-gray-600 hover:text-blue-600"
             }`}
           >
+            <PenLine className="inline" size={16} />
             Write
             {hasDraft() && (
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
@@ -77,6 +83,7 @@ export default function Navigation() {
                 : "text-gray-600 hover:text-blue-600"
             }`}
           >
+            <Gauge className="inline mb-1 mr-1 mt-1" size={18} />
             Dashboard
             {essays.length > 0 && (
               <span className="bg-gray-200 text-gray-700 text-xs px-2 py-0.5 rounded-full">
