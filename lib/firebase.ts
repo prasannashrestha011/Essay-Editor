@@ -32,7 +32,6 @@ if (isFirebaseConfigured) {
       console.log("[v0] Using existing Firebase app instance")
     }
 
-    // Only proceed if app initialization was successful
     if (app) {
       try {
         auth = getAuth(app)

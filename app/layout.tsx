@@ -1,32 +1,27 @@
-import type React from "react";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { AuthProvider } from "@/contexts/auth-context";
-import { MantineProvider } from "@mantine/core";
-import { AuthListener } from "@/contexts/AuthListener";
+import type React from "react"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { AuthProvider } from "@/contexts/auth-context"
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Essay Writer",
   description: "Write and publish your essays",
-  generator: "v0.app",
-};
+    generator: 'v0.app'
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en" className={`${inter.className} antialiased`}>
       <body className="min-h-screen bg-gray-50">
-        <MantineProvider>
-          <AuthListener />
-          <AuthProvider>{children}</AuthProvider>
-        </MantineProvider>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
-  );
+  )
 }

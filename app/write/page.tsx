@@ -1,12 +1,10 @@
-import Navigation from "@/components/navigation";
-import EssayEditor from "@/components/essay-editor";
-import { ProtectedRoute } from "@/components/protected-route";
+import Navigation from "@/components/navigation"
+import EssayEditor from "@/components/essay-editor"
+import { ProtectedRoute } from "@/components/protected-route"
 
-import { ToastContainer } from "react-toastify";
 export default function WritePage() {
   return (
     <ProtectedRoute>
-      <ToastContainer />
       <div className="min-h-screen bg-gray-50">
         <Navigation />
         <div className="container mx-auto py-8">
@@ -14,5 +12,5 @@ export default function WritePage() {
         </div>
       </div>
     </ProtectedRoute>
-  );
+  )
 }
