@@ -2,27 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Added dark mode color variables */
+/* Updated color scheme for modern, professional design */
 @layer base {
   :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 3.6%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.6%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 59 89% 51%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 217.2 91.2% 59.8%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 59 89% 51%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 217.2 91.2% 59.8%;
-    --radius: 0.5rem;
+    --ring: 59 89% 51%;
+    --radius: 0.75rem;
   }
 
   .dark {
@@ -30,14 +30,14 @@
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 59 89% 51%;
+    --primary-foreground: 0 0% 0%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 91.2% 59.8%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 59 89% 51%;
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 217.2 32.6% 17.5%;
@@ -46,87 +46,107 @@
   }
 }
 
+/* Ensure theme covers full viewport */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 /* React Quill Styles */
 .ql-editor {
-  min-height: 300px;
+  min-height: 400px;
   font-size: 16px;
-  line-height: 1.6;
+  line-height: 1.8;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
 }
 
 .ql-toolbar {
-  border-top: 1px solid #ccc;
-  border-left: 1px solid #ccc;
-  border-right: 1px solid #ccc;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem 0.75rem 0 0;
+  background-color: hsl(var(--card));
 }
 
 .ql-container {
-  border-bottom: 1px solid #ccc;
-  border-left: 1px solid #ccc;
-  border-right: 1px solid #ccc;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0 0 0.75rem 0.75rem;
+  background-color: hsl(var(--card));
 }
 
-/* Added dark mode styles for Quill editor */
+/* Dark mode styles for Quill editor */
 .dark .ql-toolbar {
-  background-color: #1e293b;
-  border-color: #334155;
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
 }
 
 .dark .ql-container {
-  background-color: #0f172a;
-  border-color: #334155;
+  background-color: hsl(var(--card));
+  border-color: hsl(var(--border));
 }
 
 .dark .ql-editor {
-  color: #f1f5f9;
-  background-color: #0f172a;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card));
 }
 
 .dark .ql-editor.ql-blank::before {
-  color: #64748b;
+  color: hsl(var(--muted-foreground));
 }
 
 .dark .ql-toolbar.ql-snow .ql-picker-label {
-  color: #f1f5f9;
+  color: hsl(var(--foreground));
 }
 
 .dark .ql-toolbar.ql-snow .ql-stroke {
-  stroke: #cbd5e1;
+  stroke: hsl(var(--muted-foreground));
 }
 
 .dark .ql-toolbar.ql-snow .ql-fill {
-  fill: #cbd5e1;
+  fill: hsl(var(--muted-foreground));
 }
 
 /* Custom styles for better typography */
 .essay-content h1 {
   font-size: 2rem;
-  font-weight: bold;
-  margin: 1rem 0;
+  font-weight: 700;
+  margin: 1.5rem 0 0.75rem 0;
+  line-height: 1.3;
 }
 
 .essay-content h2 {
   font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0.75rem 0;
+  font-weight: 700;
+  margin: 1.25rem 0 0.5rem 0;
+  line-height: 1.4;
 }
 
 .essay-content h3 {
   font-size: 1.25rem;
-  font-weight: bold;
-  margin: 0.5rem 0;
+  font-weight: 600;
+  margin: 1rem 0 0.5rem 0;
+  line-height: 1.4;
 }
 
 .essay-content p {
-  margin: 0.5rem 0;
-  line-height: 1.6;
+  margin: 0.75rem 0;
+  line-height: 1.8;
 }
 
 .essay-content ul,
 .essay-content ol {
-  margin: 0.5rem 0;
+  margin: 0.75rem 0;
   padding-left: 2rem;
 }
 
 .essay-content li {
-  margin: 0.25rem 0;
+  margin: 0.5rem 0;
+  line-height: 1.8;
 }

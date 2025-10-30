@@ -7,7 +7,7 @@ import { useEssaysStore } from "@/stores/essays-store"
 import { useAuth } from "@/contexts/auth-context"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Globe, Lock, Save, X } from "lucide-react"
+import { Globe, Lock, Save, X, FileText, Zap } from "lucide-react"
 
 const ReactQuill = dynamic(
   async () => {
@@ -18,8 +18,11 @@ const ReactQuill = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="border border-gray-300 dark:border-slate-600 rounded-lg p-4 h-64 flex items-center justify-center bg-gray-50 dark:bg-slate-800">
-        <div className="text-gray-500 dark:text-gray-400">Loading editor...</div>
+      <div className="border border-gray-200 dark:border-slate-700 rounded-xl p-6 h-80 flex items-center justify-center bg-gray-50 dark:bg-slate-800">
+        <div className="text-gray-500 dark:text-gray-400 flex items-center gap-2">
+          <div className="animate-spin rounded-full h-5 w-5 border-2 border-amber-500 border-t-transparent"></div>
+          Loading editor...
+        </div>
       </div>
     ),
   },
@@ -141,14 +144,11 @@ export default function EssayEditor() {
 
   if (!isMounted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-950 dark:to-slate-900 p-6">
+      <div className="min-h-screen bg-white dark:bg-slate-950 p-6">
         <div className="max-w-5xl mx-auto">
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700">
-            <div className="p-8 border-b border-gray-200 dark:border-slate-700">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Write Your Essay</h1>
-            </div>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800">
             <div className="p-8">
-              <div className="border border-gray-300 dark:border-slate-600 rounded-lg p-4 h-64 flex items-center justify-center bg-gray-50 dark:bg-slate-800">
+              <div className="border border-gray-200 dark:border-slate-700 rounded-xl p-6 h-80 flex items-center justify-center bg-gray-50 dark:bg-slate-800">
                 <div className="text-gray-500 dark:text-gray-400">Loading editor...</div>
               </div>
             </div>
@@ -159,47 +159,53 @@ export default function EssayEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-950 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-white dark:bg-slate-950 p-6 transition-colors">
       <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            {isEditing ? "Edit Your Essay" : "Create New Essay"}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            {isEditing ? "Update your essay and save changes" : "Share your thoughts and ideas with the world"}
+        {/* Header Section */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+              <FileText className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            </div>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
+              {isEditing ? "Edit Essay" : "Write Essay"}
+            </h1>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 ml-11">
+            {isEditing ? "Update your essay and save changes" : "Create and publish your thoughts"}
           </p>
         </div>
 
         {/* Main Editor Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 overflow-hidden">
           {/* Title Section */}
-          <div className="p-8 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-800">
+          <div className="p-8 border-b border-gray-200 dark:border-slate-800">
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Essay Title</label>
             <input
               type="text"
-              placeholder="Enter a compelling title for your essay..."
+              placeholder="Enter a compelling title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full text-2xl font-bold p-4 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-white"
+              className="w-full text-3xl font-bold p-4 border border-gray-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none placeholder-gray-400 dark:placeholder-gray-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-white transition-all"
             />
           </div>
 
-          {/* Privacy Toggle Section */}
-          <div className="px-8 py-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+          <div className="px-8 py-6 border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                {isPublic ? (
-                  <Globe className="h-5 w-5 text-green-600 dark:text-green-400" />
-                ) : (
-                  <Lock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-                )}
+              <div className="flex items-center space-x-4">
+                <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                  {isPublic ? (
+                    <Globe className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  ) : (
+                    <Lock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                  )}
+                </div>
                 <div>
-                  <Label htmlFor="privacy-toggle" className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <Label htmlFor="privacy-toggle" className="text-sm font-semibold text-gray-900 dark:text-white block">
                     {isPublic ? "Public Essay" : "Private Essay"}
                   </Label>
                   <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                    {isPublic ? "Visible to everyone on the platform" : "Only visible to you"}
+                    {isPublic ? "Visible to everyone" : "Only visible to you"}
                   </p>
                 </div>
               </div>
@@ -216,16 +222,15 @@ export default function EssayEditor() {
               onChange={setContent}
               modules={modules}
               formats={formats}
-              placeholder="Start writing your essay here... Share your insights, stories, and ideas."
+              placeholder="Start writing your essay here..."
               className="mb-6 bg-white dark:bg-slate-800"
             />
           </div>
 
-          {/* Action Buttons */}
-          <div className="px-8 py-6 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800 flex flex-wrap gap-3 justify-end">
+          <div className="px-8 py-6 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50 flex flex-wrap gap-3 justify-end">
             <button
               onClick={handleCancel}
-              className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors font-medium flex items-center gap-2"
+              className="px-6 py-2.5 text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-600 transition-all font-medium flex items-center gap-2 shadow-sm hover:shadow-md"
             >
               <X className="h-4 w-4" />
               {isEditing ? "Cancel" : "Clear"}
@@ -234,7 +239,7 @@ export default function EssayEditor() {
             <button
               onClick={handlePublish}
               disabled={isPublishing}
-              className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center gap-2 shadow-md hover:shadow-lg"
+              className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium flex items-center gap-2 shadow-md hover:shadow-lg"
             >
               <Save className="h-4 w-4" />
               {isPublishing
@@ -248,51 +253,56 @@ export default function EssayEditor() {
           </div>
         </div>
 
-        {/* Writing Tips */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md border border-gray-200 dark:border-slate-700 p-6">
-            <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <span className="text-2xl">✨</span> Writing Tips
-            </h3>
-            <ul className="text-gray-700 dark:text-gray-300 text-sm space-y-2">
-              <li className="flex gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
-                <span>Use headings to structure your essay clearly</span>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <Zap className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <h3 className="font-bold text-gray-900 dark:text-white">Writing Tips</h3>
+            </div>
+            <ul className="text-gray-700 dark:text-gray-300 text-sm space-y-3">
+              <li className="flex gap-3">
+                <span className="text-amber-500 font-bold flex-shrink-0">•</span>
+                <span>Use clear headings to structure your essay</span>
               </li>
-              <li className="flex gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
+              <li className="flex gap-3">
+                <span className="text-amber-500 font-bold flex-shrink-0">•</span>
                 <span>Bold important points for emphasis</span>
               </li>
-              <li className="flex gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
-                <span>Create lists to organize your thoughts</span>
+              <li className="flex gap-3">
+                <span className="text-amber-500 font-bold flex-shrink-0">•</span>
+                <span>Create lists to organize thoughts</span>
               </li>
-              <li className="flex gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
+              <li className="flex gap-3">
+                <span className="text-amber-500 font-bold flex-shrink-0">•</span>
                 <span>Add links to reference sources</span>
               </li>
             </ul>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-md border border-gray-200 dark:border-slate-700 p-6">
-            <h3 className="font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-              <span className="text-2xl">🔒</span> Privacy Control
-            </h3>
-            <ul className="text-gray-700 dark:text-gray-300 text-sm space-y-2">
-              <li className="flex gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-800 p-6 hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <Lock className="h-5 w-5 text-green-600 dark:text-green-400" />
+              </div>
+              <h3 className="font-bold text-gray-900 dark:text-white">Privacy Control</h3>
+            </div>
+            <ul className="text-gray-700 dark:text-gray-300 text-sm space-y-3">
+              <li className="flex gap-3">
+                <span className="text-amber-500 font-bold flex-shrink-0">•</span>
                 <span>Keep essays private while drafting</span>
               </li>
-              <li className="flex gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
+              <li className="flex gap-3">
+                <span className="text-amber-500 font-bold flex-shrink-0">•</span>
                 <span>Make public when ready to share</span>
               </li>
-              <li className="flex gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
+              <li className="flex gap-3">
+                <span className="text-amber-500 font-bold flex-shrink-0">•</span>
                 <span>Toggle privacy anytime</span>
               </li>
-              <li className="flex gap-2">
-                <span className="text-blue-600 dark:text-blue-400 font-bold">•</span>
+              <li className="flex gap-3">
+                <span className="text-amber-500 font-bold flex-shrink-0">•</span>
                 <span>Only you can edit your essays</span>
               </li>
             </ul>
