@@ -27,8 +27,10 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>("light")
   const [mounted, setMounted] = useState(false)
 
-  // Load theme from localStorage on mount
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === "undefined") return
+
     const savedTheme = localStorage.getItem("theme") as Theme | null
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
 
@@ -39,6 +41,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
   }, [])
 
   const applyTheme = (newTheme: Theme) => {
+    if (typeof window === "undefined") return
+
     const root = document.documentElement
     if (newTheme === "dark") {
       root.classList.add("dark")
@@ -52,11 +56,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     const newTheme = theme === "light" ? "dark" : "light"
     setTheme(newTheme)
     applyTheme(newTheme)
-  }
-
-  // Prevent flash of wrong theme
-  if (!mounted) {
-    return <>{children}</>
   }
 
   return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
