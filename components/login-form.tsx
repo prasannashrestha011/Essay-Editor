@@ -27,14 +27,18 @@ export function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-[hsl(var(--background))]">
+      <Card className="w-full max-w-md bg-[hsl(var(--card))] border-[hsl(var(--border))]">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Welcome to Essay Writer</CardTitle>
-          <CardDescription>Sign in to start writing and publishing your essays</CardDescription>
+          <CardTitle className="text-2xl font-bold text-[hsl(var(--foreground))]">Welcome to Essay Writer</CardTitle>
+          <CardDescription className="text-[hsl(var(--foreground))]/70">
+            Sign in to start writing and publishing your essays
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {error && <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">{error}</div>}
+          {error && (
+            <div className="p-3 text-sm text-red-600 bg-red-900/20 border border-red-800 rounded-md">{error}</div>
+          )}
 
           <Button
             onClick={handleGoogleSignIn}

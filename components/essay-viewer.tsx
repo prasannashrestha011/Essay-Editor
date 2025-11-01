@@ -103,8 +103,10 @@ export default function EssayViewer({ essayId }: EssayViewerProps) {
   if (!essay) {
     return (
       <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Essay Not Found</h2>
-        <p className="text-gray-600 mb-6">The essay you're looking for doesn't exist or is not accessible.</p>
+        <h2 className="text-2xl font-bold text-[hsl(var(--foreground))] mb-4">Essay Not Found</h2>
+        <p className="text-[hsl(var(--foreground))]/70 mb-6">
+          The essay you're looking for doesn't exist or is not accessible.
+        </p>
         <Link
           href="/"
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
@@ -122,7 +124,7 @@ export default function EssayViewer({ essayId }: EssayViewerProps) {
         <div className="flex items-center justify-between mb-4">
           <Link
             href={isOwner ? "/dashboard" : "/"}
-            className="text-blue-600 hover:text-blue-800 font-medium transition-colors flex items-center"
+            className="text-blue-600 hover:text-blue-400 font-medium transition-colors flex items-center"
           >
             ← {isOwner ? "Back to Dashboard" : "Back to Home"}
           </Link>
@@ -166,9 +168,9 @@ export default function EssayViewer({ essayId }: EssayViewerProps) {
           )}
         </div>
 
-        <h1 className="text-4xl font-bold text-gray-900 mb-4 text-balance">{essay.title}</h1>
+        <h1 className="text-4xl font-bold text-[hsl(var(--foreground))] mb-4 text-balance">{essay.title}</h1>
 
-        <div className="text-gray-500 text-sm flex items-center gap-4">
+        <div className="text-[hsl(var(--foreground))]/70 text-sm flex items-center gap-4">
           <span>Published on {formatDate(essay.createdAt)}</span>
           {essay.updatedAt !== essay.createdAt && <span>• Updated on {formatDate(essay.updatedAt)}</span>}
           {!isOwner && <span>• By {essay.userId.substring(0, 8)}...</span>}
@@ -176,10 +178,10 @@ export default function EssayViewer({ essayId }: EssayViewerProps) {
       </div>
 
       {/* Content */}
-      <div className="bg-white rounded-lg shadow-sm border">
+      <div className="bg-[hsl(var(--card))] rounded-lg shadow-sm border border-[hsl(var(--border))]">
         <div className="p-8">
           <div
-            className="essay-content prose prose-lg max-w-none"
+            className="essay-content prose prose-lg max-w-none text-[hsl(var(--foreground))]"
             dangerouslySetInnerHTML={{ __html: essay.content }}
           />
         </div>
@@ -197,7 +199,7 @@ export default function EssayViewer({ essayId }: EssayViewerProps) {
             </Link>
             <Link
               href="/dashboard"
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-6 rounded-lg transition-colors"
+              className="bg-[hsl(var(--card))] hover:bg-[hsl(var(--card))]/90 text-[hsl(var(--foreground))] font-medium py-2 px-6 rounded-lg transition-colors border border-[hsl(var(--border))]"
             >
               View All Essays
             </Link>
@@ -213,7 +215,7 @@ export default function EssayViewer({ essayId }: EssayViewerProps) {
             {user && (
               <Link
                 href="/write"
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-6 rounded-lg transition-colors"
+                className="bg-[hsl(var(--card))] hover:bg-[hsl(var(--card))]/90 text-[hsl(var(--foreground))] font-medium py-2 px-6 rounded-lg transition-colors border border-[hsl(var(--border))]"
               >
                 Write Your Own
               </Link>

@@ -44,7 +44,7 @@ export default function EssayList() {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="text-gray-500">Loading essays...</div>
+        <div className="text-[hsl(var(--foreground))]/70">Loading essays...</div>
       </div>
     )
   }
@@ -52,8 +52,8 @@ export default function EssayList() {
   if (essays.length === 0) {
     return (
       <div className="text-center py-12">
-        <div className="text-gray-500 mb-4">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="text-[hsl(var(--foreground))]/50 mb-4">
+          <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -62,8 +62,8 @@ export default function EssayList() {
             />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No essays yet</h3>
-        <p className="text-gray-500 mb-6">Start writing your first essay to see it here.</p>
+        <h3 className="text-lg font-medium text-[hsl(var(--foreground))] mb-2">No essays yet</h3>
+        <p className="text-[hsl(var(--foreground))]/70 mb-6">Start writing your first essay to see it here.</p>
         <Link
           href="/write"
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
@@ -78,8 +78,8 @@ export default function EssayList() {
     <div className="max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Published Essays</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-[hsl(var(--foreground))]">Published Essays</h1>
+          <p className="text-[hsl(var(--foreground))]/70 mt-1">
             {essays.length} essay{essays.length !== 1 ? "s" : ""} published
           </p>
         </div>
@@ -93,15 +93,18 @@ export default function EssayList() {
 
       <div className="space-y-6">
         {essays.map((essay) => (
-          <div key={essay.id} className="bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow">
+          <div
+            key={essay.id}
+            className="bg-[hsl(var(--card))] rounded-lg shadow-sm border border-[hsl(var(--border))] hover:shadow-md transition-shadow"
+          >
             <div className="p-6">
               <div className="flex justify-between items-start mb-3">
-                <h2 className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors">
+                <h2 className="text-xl font-semibold text-[hsl(var(--foreground))] hover:text-blue-400 transition-colors">
                   <Link href={`/essays/${essay.id}`}>{essay.title}</Link>
                 </h2>
                 <button
                   onClick={() => handleDeleteEssay(essay.id)}
-                  className="text-red-500 hover:text-red-700 transition-colors p-1"
+                  className="text-red-500 hover:text-red-400 transition-colors p-1"
                   title="Delete essay"
                 >
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,13 +118,13 @@ export default function EssayList() {
                 </button>
               </div>
 
-              <p className="text-gray-600 mb-4 leading-relaxed">{getPreview(essay.content)}</p>
+              <p className="text-[hsl(var(--foreground))]/70 mb-4 leading-relaxed">{getPreview(essay.content)}</p>
 
-              <div className="flex justify-between items-center text-sm text-gray-500">
+              <div className="flex justify-between items-center text-sm text-[hsl(var(--foreground))]/70">
                 <span>Published on {formatDate(essay.createdAt)}</span>
                 <Link
                   href={`/essays/${essay.id}`}
-                  className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
+                  className="text-blue-600 hover:text-blue-400 font-medium transition-colors"
                 >
                   Read more →
                 </Link>

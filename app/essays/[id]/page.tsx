@@ -11,7 +11,7 @@ interface PageProps {
 export default function EssayPage({ params }: PageProps) {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-[hsl(var(--background))]">
         <Navigation />
         <div className="container mx-auto px-4 py-8">
           <EssayViewer essayId={params.id} />

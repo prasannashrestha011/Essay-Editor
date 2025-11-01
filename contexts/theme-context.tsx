@@ -58,5 +58,5 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     applyTheme(newTheme)
   }
 
-  return <ThemeContext.Provider value={{ theme, toggleTheme }}>{children}</ThemeContext.Provider>
+  return <ThemeContext.Provider value={{ theme: "dark" }}>{children}</ThemeContext.Provider>
 }
