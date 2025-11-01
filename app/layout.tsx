@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.className} antialiased`} suppressHydrationWarning>
-      <body className="min-h-screen bg-white dark:bg-slate-950 text-gray-900 dark:text-gray-50 transition-colors">
+      <body className="min-h-screen bg-[hsl(var(--background))] text-[hsl(var(--foreground))] transition-colors">
         <ThemeProvider>
           <AuthProvider>{children}</AuthProvider>
         </ThemeProvider>

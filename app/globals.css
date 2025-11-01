@@ -9,19 +9,19 @@
     --foreground: 0 0% 3.6%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.6%;
-    --primary: 59 89% 51%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 59 89% 51%;
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 59 89% 51%;
+    --ring: 217 91% 60%;
     --radius: 0.75rem;
   }
 
@@ -30,13 +30,13 @@
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
-    --primary: 59 89% 51%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 0%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 59 89% 51%;
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 0%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
@@ -55,6 +55,7 @@ body {
   padding: 0;
 }
 
+/* Use CSS variables for complete theme coverage */
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
@@ -67,6 +68,8 @@ body {
   font-size: 16px;
   line-height: 1.8;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", sans-serif;
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card));
 }
 
 .ql-toolbar {
@@ -79,6 +82,7 @@ body {
   border: 1px solid hsl(var(--border));
   border-radius: 0 0 0.75rem 0.75rem;
   background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
 }
 
 /* Dark mode styles for Quill editor */
@@ -111,6 +115,14 @@ body {
 
 .dark .ql-toolbar.ql-snow .ql-fill {
   fill: hsl(var(--muted-foreground));
+}
+
+.dark .ql-toolbar.ql-snow .ql-stroke.ql-fill {
+  fill: hsl(var(--muted-foreground));
+}
+
+.dark .ql-toolbar.ql-snow .ql-picker {
+  color: hsl(var(--foreground));
 }
 
 /* Custom styles for better typography */
